@@ -1,0 +1,21 @@
+{
+  "name": "simple-blog",
+  "version": "1.0.0",
+  "description": "A backend service for Simple Blog Application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Anuj",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.2.2",
+    "morgan": "^1.10.0"
+  }
+}
