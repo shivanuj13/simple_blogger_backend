@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
+const cors = require("cors");
 require("dotenv").config();
 
 const postRouter = require("./routes/postRoutes");
@@ -25,8 +26,10 @@ db.once("open", () => {
 // app setup
 const app = express();
 const port = process.env.PORT || 3000;
+
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cors());
 
 // routes middleware
 app.get("/", (req, res) => {
