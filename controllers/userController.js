@@ -1,4 +1,5 @@
 const userModel = require("../models/userModel");
+const postModel = require("../models/postModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -26,6 +27,8 @@ const signUp = async (req, res, next) => {
       email: email,
       password: encryptedPassword,
       photoUrl: photoUrl,
+      subscriberCount: 0,
+      subscriptionList: [],
     });
     //generate token
     const token = jwt.sign({ email: email, id: result._id }, secretKey);
@@ -85,7 +88,6 @@ const update = (req, res, next) => {
   try {
     const { name, email, photoUrl } = req.body;
     const id = req.userId;
-    console.log(id);
     userModel
       .findByIdAndUpdate(
         id,
@@ -128,4 +130,91 @@ const update = (req, res, next) => {
   }
 };
 
-module.exports = { signUp, signIn, update };
+const updateSubscriptions = async (req, res, next) => {
+  try {
+    const { authorId } = req.body;
+    const userId = req.userId;
+    if (authorId === userId) {
+      return next({
+        status: 403,
+        message: "You can't subscribe to yourself!!",
+      });
+    }
+
+    const user = await userModel.findById(userId);
+    const author = await userModel.findById(authorId);
+    if (!author) {
+      return next({
+        status: 404,
+        message: "Author not found!!",
+      });
+    }
+    if (!user) {
+      return next({
+        status: 404,
+        message: "User not found!!",
+      });
+    }
+    const subscriptionList = user.subscriptionList;
+    const isSubscribed = subscriptionList.includes(authorId);
+    if (isSubscribed) {
+      subscriptionList.pull(authorId);
+      await user.save();
+      author.subscriberCount = author.subscriberCount - 1;
+      await author.save();
+      return res.json({
+        status: true,
+        data: {
+          message: "Unsubscribed successfully!!",
+          user: user,
+        },
+        error: null,
+      });
+    } else {
+      subscriptionList.push(authorId);
+      await user.save();
+      author.subscriberCount = author.subscriberCount + 1;
+      await author.save();
+      return res.json({
+        status: true,
+        data: {
+          message: "Subscribed successfully!!",
+          user: user,
+        },
+        error: null,
+      });
+    }
+  } catch (error) {
+    next({
+      status: error.status,
+      message: error.message,
+    });
+  }
+};
+
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await userModel.find();
+    return res.json({
+      status: true,
+      data: {
+        users,
+      },
+      error: null,
+    });
+  } catch (error) {
+    next({
+      status: error.status,
+      message: error.message,
+    });
+  }
+};
+
+
+module.exports = {
+  signUp,
+  signIn,
+  update,
+  updateSubscriptions,
+  getAllUsers,
+};
